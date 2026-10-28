@@ -20,12 +20,11 @@
         android:hint="Enter Student ID"
         android:inputType="number" />
 
-    <CheckBox
-        android:id="@+id/cbEnrolled"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="Has Enrolled" />
+    <Spinner
+        android:id="@+id/spMajor"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="12dp" />
 
     <LinearLayout
         android:layout_width="match_parent"

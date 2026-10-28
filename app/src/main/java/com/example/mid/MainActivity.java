@@ -1,29 +1,32 @@
 package com.example.mid;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String[] MAJORS = {"Informatics", "Information Systems"};
+
     private EditText etName, etId;
-    private CheckBox cbEnrolled;
+    private Spinner spMajor;
     private Button btnAdd, btnEdit, btnDelete, btnView;
     private ListView lvStudents;
 
-    private com.example.mid.DatabaseHelper db;
+    private DatabaseHelper db;
     private ArrayList<Student> students = new ArrayList<>();
     private ArrayAdapter<Student> adapter;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,23 +34,27 @@ public class MainActivity extends AppCompatActivity {
 
         etName = findViewById(R.id.etName);
         etId = findViewById(R.id.etId);
-        cbEnrolled = findViewById(R.id.cbEnrolled);
+        spMajor = findViewById(R.id.spMajor);
         btnAdd = findViewById(R.id.btnAdd);
         btnEdit = findViewById(R.id.btnEdit);
         btnDelete = findViewById(R.id.btnDelete);
         btnView = findViewById(R.id.btnView);
         lvStudents = findViewById(R.id.lvStudents);
 
-        db = new com.example.mid.DatabaseHelper(this);
+        db = new DatabaseHelper(this);
+
+        spMajor.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, MAJORS));
+
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, students);
         lvStudents.setAdapter(adapter);
 
-        // Klik item list -> isi form (untuk EDIT / DELETE)
+        // Tap a row to load it into the form (for EDIT / DELETE)
         lvStudents.setOnItemClickListener((parent, view, position, id) -> {
             Student s = students.get(position);
             etName.setText(s.name);
             etId.setText(s.id);
-            cbEnrolled.setChecked(s.enrolled);
+            spMajor.setSelection(s.major.equals(MAJORS[1]) ? 1 : 0);
         });
 
         btnAdd.setOnClickListener(v -> addStudent());
@@ -55,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         btnDelete.setOnClickListener(v -> deleteStudent());
         btnView.setOnClickListener(v -> {
             loadStudents();
-            Toast.makeText(this, students.size() + " data", Toast.LENGTH_SHORT).show();
+            toast(students.size() + " record(s)");
         });
 
         loadStudents();
@@ -64,35 +71,37 @@ public class MainActivity extends AppCompatActivity {
     private void addStudent() {
         String name = etName.getText().toString().trim();
         String id = etId.getText().toString().trim();
+        String major = spMajor.getSelectedItem().toString();
 
         if (name.isEmpty() || id.isEmpty()) {
-            toast("Name and Student ID are required");
+            toast("Student name and ID are required");
             return;
         }
         if (db.isIdExists(id)) {
-            etId.setError("Student ID is already registered");
-            toast("Student ID must be unique!");
+            etId.setError("Student ID already exists");
+            toast("Student ID already exists");
             return;
         }
-        if (db.addStudent(name, id, cbEnrolled.isChecked())) {
-            toast("Data successfully added");
+        if (db.addStudent(name, id, major)) {
+            toast("Student added");
             clearForm();
             loadStudents();
         } else {
-            toast("Failed to add data");
+            toast("Failed to add student");
         }
     }
 
     private void editStudent() {
         String name = etName.getText().toString().trim();
         String id = etId.getText().toString().trim();
+        String major = spMajor.getSelectedItem().toString();
 
         if (name.isEmpty() || id.isEmpty()) {
-            toast("Pick data from the list or enter the Student ID you want to change");
+            toast("Select a record from the list first");
             return;
         }
-        if (db.updateStudent(name, id, cbEnrolled.isChecked())) {
-            toast("Data successfully changed");
+        if (db.updateStudent(name, id, major)) {
+            toast("Student updated");
             clearForm();
             loadStudents();
         } else {
@@ -104,11 +113,11 @@ public class MainActivity extends AppCompatActivity {
         String id = etId.getText().toString().trim();
 
         if (id.isEmpty()) {
-            toast("Enter Student ID or pick data from the list");
+            toast("Enter a Student ID or select a record");
             return;
         }
         if (db.deleteStudent(id)) {
-            toast("Data successfully deleted");
+            toast("Student deleted");
             clearForm();
             loadStudents();
         } else {
@@ -118,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadStudents() {
         students.clear();
-        students.addAll((Collection<? extends Student>) db.getAllStudents());
+        students.addAll(db.getAllStudents());
         adapter.notifyDataSetChanged();
     }
 
@@ -126,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         etName.setText("");
         etId.setText("");
         etId.setError(null);
-        cbEnrolled.setChecked(false);
+        spMajor.setSelection(0);
         etName.requestFocus();
     }
 
