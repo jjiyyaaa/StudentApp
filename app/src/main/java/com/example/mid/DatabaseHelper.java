@@ -14,7 +14,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final int DB_VERSION = 1;
 
     private static final String TABLE = "students";
-    private static final String COL_ID = "student_id";      // PRIMARY KEY -> unique
+    private static final String COL_ID = "student_id";
     private static final String COL_NAME = "student_name";
     private static final String COL_MAJOR = "major";
 
